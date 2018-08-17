@@ -131,8 +131,11 @@ fn cli() -> App<'static, 'static> {
         .max_term_width(80)
         .arg(clap::Arg::with_name("DURATION")
              .help("Some span of time to countdown from, given as any combination of `1d`, `1h`, `1m`, or `1s`.\n\nExamples:\n\n> act 3d4h\n> act 1m30s\n> act '10d 3h 21m 10s'")
-             .required(true)
-        )
+             .required(true))
+        .arg(clap::Arg::with_name("quiet")
+             .short("q")
+             .long("quiet")
+             .help("Don't flash the console when the timer expires"))
 }
 
 fn main() {
@@ -142,9 +145,10 @@ fn main() {
     // amount of time set to countdown from is what's actually shown when the app starts.
     let countdown =
         duration_from_string(args.value_of("DURATION").unwrap()) + Duration::from_secs(1);
+    let is_quiet = args.is_present("quiet"); 
 
     let finished = run(countdown);
-    if finished {
+    if finished && !is_quiet {
         print!("{}", BELL);
     }
 }
