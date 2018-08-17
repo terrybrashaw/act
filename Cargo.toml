@@ -1,0 +1,13 @@
+cargo-features = ["edition"]
+
+[package]
+name = "act"
+version = "0.1.0"
+authors = ["Terry Brashaw <terrybrashaw@gmail.com>"]
+description = "A Countdown Timer"
+edition = "2018"
+
+[dependencies]
+termion = "1"
+clap = "2"
+
