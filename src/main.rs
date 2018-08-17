@@ -129,8 +129,8 @@ fn cli() -> App<'static, 'static> {
         .about(crate_description!())
         .setting(clap::AppSettings::UnifiedHelpMessage)
         .max_term_width(80)
-        .arg(clap::Arg::with_name("duration")
-             .help("Some amount of time to countdown from, specified as a combination of common units of time: '1d', '1h', '1m', '1s'.\n\nExamples: '3d4h', '1m30s', '10d3h21m10s'.")
+        .arg(clap::Arg::with_name("DURATION")
+             .help("Some span of time to countdown from, given as any combination of `1d`, `1h`, `1m`, or `1s`.\n\nExamples:\n\n> act 3d4h\n> act 1m30s\n> act '10d 3h 21m 10s'")
              .required(true)
         )
 }
@@ -141,7 +141,7 @@ fn main() {
     // Get the countdown duration, passed in as an app argument. Then, add 1 second so that the
     // amount of time set to countdown from is what's actually shown when the app starts.
     let countdown =
-        duration_from_string(args.value_of("duration").unwrap()) + Duration::from_secs(1);
+        duration_from_string(args.value_of("DURATION").unwrap()) + Duration::from_secs(1);
 
     let finished = run(countdown);
     if finished {
