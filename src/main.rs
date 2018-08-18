@@ -3,6 +3,7 @@
 use std::io::{stdout, Write};
 use std::thread;
 use std::time::{Duration, Instant};
+use std::process::Command;
 
 use clap::{App, crate_authors, crate_description, crate_name, crate_version};
 
@@ -56,6 +57,12 @@ fn string_from_duration(duration: Duration) -> String {
     }
 }
 
+fn large_text(text: &str) -> String {
+    let output = Command::new("figlet").arg(text).output().unwrap().stdout;
+    let output = String::from_utf8(output).unwrap();
+    output
+}
+
 fn run(countdown: Duration) -> bool {
     // To ensure the console is returned back into its normal state after we're done, we
     // instantiate this `ConsoleReset` object which resets the console when dropped. This way, the
@@ -70,6 +77,8 @@ fn run(countdown: Duration) -> bool {
     let mut dt = Instant::now();
 
     let mut paused = false;
+    let is_text_large = true;
+    write!(stdout, "{}", termion::cursor::Hide);
     loop {
         if !paused {
             elapsed += dt.elapsed();
@@ -77,22 +86,30 @@ fn run(countdown: Duration) -> bool {
         dt = Instant::now();
 
         if countdown >= elapsed {
-            let remaining = string_from_duration(countdown - elapsed);
             let (window_width, window_height) = termion::terminal_size().unwrap();
+
+            let mut remaining = string_from_duration(countdown - elapsed);
+            if is_text_large {
+                remaining = large_text(&remaining);
+            }
+            let remaining_lines: Vec<&str> = remaining.split('\n').collect();
+            let remaining_width = remaining_lines.iter().fold(0, |acc, line| acc.max(line.len()));
+
+            write!(stdout, "{}", termion::clear::All);
             if paused {
                 write!(stdout, "{}", termion::color::Fg(termion::color::Green));
             }
-            write!(
-                stdout,
-                "{}{}{}{}",
-                termion::clear::All,
-                termion::cursor::Goto(
-                    window_width / 2 - remaining.len() as u16 / 2,
-                    window_height / 2
-                ),
-                remaining,
-                termion::cursor::Hide
-            );
+            for (i, line) in remaining_lines.iter().enumerate() {
+                write!(
+                    stdout,
+                    "{}{}",
+                    termion::cursor::Goto(
+                        window_width / 2 - remaining_width as u16 / 2,
+                        window_height / 2 - remaining_lines.len() as u16 / 2 + i as u16,
+                    ),
+                    line,
+                );
+            }
             write!(stdout, "{}", termion::color::Fg(termion::color::Reset));
             stdout.flush().unwrap();
         } else {
